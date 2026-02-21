@@ -21,4 +21,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build and push
-        run: echo "Building and pushing image for ${{ github.ref_name }}..."
+        run: |
+          echo "Building and pushing image for ${{ github.ref_name }}..."
+          echo "AWS_GH_ROLE=${{ vars.AWS_GH_ROLE }}"
+          echo "ECR_REGISTRY=${{ vars.ECR_REGISTRY }}"
+          echo "Image tag: ${{ vars.ECR_REGISTRY }}/pos:${{ github.ref_name }}"
