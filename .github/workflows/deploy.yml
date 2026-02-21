@@ -16,16 +16,23 @@ jobs:
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Deploying ${{ github.ref_name }} to ${{ inputs.target }}"
+      - run: echo "Releasing ${{ github.ref_name }} to ${{ inputs.target }}"
 
-  deploy:
+  build-and-deploy:
     needs: check-tag
     runs-on: ubuntu-latest
     environment: ${{ inputs.target }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Build
+        run: |
+          echo "Building image for ${{ github.ref_name }}..."
+          echo "AWS_GH_ROLE=${{ vars.AWS_GH_ROLE }}"
+          echo "ECR_REGISTRY=${{ vars.ECR_REGISTRY }}"
+          echo "Image tag: ${{ vars.ECR_REGISTRY }}/pos:${{ github.ref_name }}"
       - name: Deploy
         run: |
           echo "Deploying ${{ github.ref_name }} to ${{ inputs.target }}..."
+          echo "ECS_CLUSTER_NAME=${{ vars.ECS_CLUSTER_NAME }}"
           echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
