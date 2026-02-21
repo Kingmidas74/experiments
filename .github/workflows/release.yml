@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: echo "Running tests..."
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [oldone, newone]
+    environment: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          echo "Building for ${{ matrix.target }}..."
+          echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
+      - name: Deploy
+        run: |
+          echo "Deploying to ${{ matrix.target }}..."
+          echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
