@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Deploy target'
+        required: true
+        type: choice
+        options:
+          - oldone
+          - newone
+          - both
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: echo "Running tests..."
+
+  release-oldone:
+    if: inputs.target == 'oldone' || inputs.target == 'both'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: oldone
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          echo "Building for oldone..."
+          echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
+      - name: Deploy
+        run: |
+          echo "Deploying to oldone..."
+          echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
+
+  release-newone:
+    if: inputs.target == 'newone' || inputs.target == 'both'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: newone
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          echo "Building for newone..."
+          echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
+      - name: Deploy
+        run: |
+          echo "Deploying to newone..."
+          echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
