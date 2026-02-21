@@ -1,5 +1,5 @@
 name: Deploy
-run-name: "Deploy ${{ github.ref_name }} → ${{ inputs.target }}"
+run-name: "Deploy ${{ github.ref_name }} → ${{ github.ref_type == 'tag' && 'all environments' || inputs.target }}"
 
 on:
   push:
@@ -16,20 +16,45 @@ on:
           - newone
 
 jobs:
-  check-tag:
-    if: github.ref_type == 'tag'
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Releasing ${{ github.ref_name }} to ${{ inputs.target }}"
 
-  build:
-    needs: check-tag
+  test:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.target }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        
+
+      - name: Run tests
+        run: |
+          echo "Running tests for ${{ github.ref_name }}..."
+          echo "Tests passed"
+
+  define-environments:
+    runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.set-environments.outputs.environments }}
+    steps:
+      - name: Set target environments
+        id: set-environments
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "environments=[\"oldone\", \"newone\"]" >> $GITHUB_OUTPUT
+            echo "Deploying tag ${{ github.ref_name }} to all environments"
+          else
+            echo "environments=[\"${{ inputs.target }}\"]" >> $GITHUB_OUTPUT
+            echo "Deploying to ${{ inputs.target }} only"
+          fi
+
+  build:
+    needs: [define-environments, test]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.define-environments.outputs.environments) }}
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
       - name: Build
         run: |
           echo "Building image for ${{ github.ref_name }}..."
@@ -40,13 +65,16 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: ${{ inputs.target }}
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.define-environments.outputs.environments) }}
+    environment: ${{ matrix.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Deploy
         run: |
-          echo "Deploying ${{ github.ref_name }} to ${{ inputs.target }}..."
+          echo "Deploying ${{ github.ref_name }} to ${{ matrix.environment }}..."
           echo "ECS_CLUSTER_NAME=${{ vars.ECS_CLUSTER_NAME }}"
           echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
