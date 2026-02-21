@@ -63,7 +63,7 @@ jobs:
           echo "Image tag: ${{ vars.ECR_REGISTRY }}/pos:${{ github.ref_name }}"
 
   deploy:
-    needs: build
+    needs: [define-environments, build]
     runs-on: ubuntu-latest
     strategy:
       matrix:
