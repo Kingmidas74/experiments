@@ -1,4 +1,4 @@
-name: Release
+name: Release newone
 
 on:
   push:
@@ -16,17 +16,14 @@ jobs:
   release:
     needs: test
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: [oldone, newone]
-    environment: ${{ matrix.target }}
+    environment: newone
     steps:
       - uses: actions/checkout@v4
       - name: Build
         run: |
-          echo "Building for ${{ matrix.target }}..."
+          echo "Building for newone..."
           echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
       - name: Deploy
         run: |
-          echo "Deploying to ${{ matrix.target }}..."
+          echo "Deploying to newone..."
           echo "CUSTOMVALUE=${{ vars.CUSTOMVALUE }}"
